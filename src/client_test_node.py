@@ -18,7 +18,7 @@ import roslib
 import importlib
 import rospy
 import actionlib
-import client_test_skill.msg ############# Cambiar esto #############
+import multimedia_msgs.msg ############# Cambiar esto #############
 
 pkg_name = 'client_test_skill' ############# Cambiar esto #############
 roslib.load_manifest(pkg_name)
@@ -32,8 +32,8 @@ skill_name = "client_test_skill" ############# Cambiar esto #############
 
 class ClientTestSkill(Skill): ############# Cambiar esto #############
 
-	#_feedback = client_test_skill.msg.TestFeedback() ############# Cambiar esto #############
-	#_result = client_test_skill.msg.TestResult() ############# Cambiar esto #############
+	#_feedback = multimedia_msgs.msg.ClientFeedback() ############# Cambiar esto #############
+	#_result = multimedia_msgs.msg.ClientResult() ############# Cambiar esto #############
 
 	def __init__(self):
 		"""
@@ -66,7 +66,7 @@ class ClientTestSkill(Skill): ############# Cambiar esto #############
 		'''
 		if not self._as:
 
-			self._as = actionlib.SimpleActionClient(pkg_name, client_test_skill.msg.ClientAction) ############# Cambiar esto #############
+			self._as = actionlib.SimpleActionClient(pkg_name, multimedia_msgs.msg.ClientAction) ############# Cambiar esto #############
 
 			# start the action server
 			self._as.start()
