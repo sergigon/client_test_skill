@@ -18,22 +18,21 @@ import roslib
 import importlib
 import rospy
 import actionlib
+
 import multimedia_msgs.msg
 
 pkg_name = 'client_test_skill'
 roslib.load_manifest(pkg_name)
 
 # declare this only if the name is different of 'pkg_name'
-skill_name = "client_server_test_skill"
-
-server_name = 'test_skill'
+skill_name = "skill_server_model"
 
 # Result:
 # -1: Si ha habido algun error o cancelacion
 # 1: Si todo va bien
 
 
-class ClientServerTestSkill(Skill):
+class ServerModelSkill(Skill):
 
 	# Feedback and result of this skill
 	_feedback = multimedia_msgs.msg.ClientFeedback()
@@ -50,12 +49,9 @@ class ClientServerTestSkill(Skill):
 		self._as = None # SimpleActionServer variable
 		self._goal = 0 # Goal a recibir
 		
-		self._sub_stop = None # Subscriber to external stop
-		
 		self._out = False # Variable de salida del loop en el execute_cb
 		self._counter = 0 
-		
-		#self._client = None
+
 
 	def create_msg_srv(self):
 		"""
@@ -63,15 +59,8 @@ class ClientServerTestSkill(Skill):
  		"""
  		print("create_msg_srv() called")
 		# publishers and subscribers
-		#self._sub_stop = rospy.Subscriber("chatter", String, callback)
 		
 		# servers and clients
-
-		# actions
-		# action_module = self.my_import(test_skill.msg.testAction, testAction)
-		#self._client = actionlib.SimpleActionClient(server_name, action_module)
-
-		#self._client.wait_for_server()
 
 		# Si el servidor actionlib no se ha inicializado:
 		if not self._as:
@@ -94,24 +83,6 @@ class ClientServerTestSkill(Skill):
 		
 		print("shutdown_msg_srv() called")
 
-	'''
-	def my_import(module_name, class_name):
-		"""
-		Function to import a module from a string.
-
-		@param module_name: The name of the module.
-		@param class_name: The name of the class.
-		"""
-
-		# load the module, will raise ImportError if module cannot be loaded
-		m = importlib.import_module(module_name)
-
-		# get the class, will raise AttributeError if class cannot be found
-		c = getattr(m, class_name)
-
-		return c
-	'''
-
 	def execute_cb(self, goal): # Se activa cuando le envias un goal a la skill
 		"""
 		Spinner of the node.
@@ -119,7 +90,7 @@ class ClientServerTestSkill(Skill):
 		rospy.loginfo('[' + pkg_name + ']')
 	
 		# default values (SUCCESS)
-		self._result.result = False
+		self._result.result = -1
 		self._feedback.feedback = 0
 
 		################### Loop de ejecucion ##########################
@@ -145,11 +116,12 @@ class ClientServerTestSkill(Skill):
 							rospy.loginfo("goal:" + str(goal.command))
 						else:
 							rospy.loginfo("goal vacio")
+							
 					self._counter = self._counter + 1
 					print("self._counter: " + str(self._counter))
-					if self._counter >= 30:
+					if self._counter >= 10:
 						self._result.result = 1
-						self._out = True
+						self._out = True # Salgo del loop
 					#==================================================#
 				
 				######### Si se ha hecho un preempted o cancel: ########
@@ -190,6 +162,7 @@ class ClientServerTestSkill(Skill):
 			self._as.set_preempted(self._result)
 		#==============================================================#
 
+
 		# Inicializacion variables
 		self._counter = 0
 		self._out = False
@@ -203,7 +176,7 @@ if __name__ == '__main__':
 		rospy.init_node(skill_name)
 
 		# create and spin the node
-		node = ClientServerTestSkill()
+		node = ServerModelSkill()
 		rospy.spin()
 
 	except rospy.ROSInterruptException:

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+<arg name="robot"/>
+<group ns="$(arg robot)">
+        <node pkg="client_test_skill" type="server_model_node.py"
+            name="server_model_skill" output="screen" required="true" />
+</group>
+</launch>
