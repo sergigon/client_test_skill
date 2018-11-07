@@ -22,7 +22,7 @@ import multimedia_msgs.msg
 
 pkg_name = 'client_test_skill'
 roslib.load_manifest(pkg_name)
-skill_name = 'client_test_skill'
+skill_name = 'client_model_skill'
 
 server_name = 'server_model_skill'
 
