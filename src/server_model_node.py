@@ -68,8 +68,8 @@ def my_import(module_name, class_name):
 class ServerModelSkill(Skill):
 
 	# Feedback and result of this skill
-	_feedback = multimedia_msgs.msg.TestFeedback() #getattr(multimedia_msgs.msg, server_feedback_str) #my_import(server_module_str, server_feedback_str) # (multimedia_msgs.msg.{Action_name}Feedback)
-	_result = multimedia_msgs.msg.TestResult() #getattr(multimedia_msgs.msg, server_result_str) # (multimedia_msgs.msg.{Action_name}Result)
+	_feedback = multimedia_msgs.msg.TestFeedback() # getattr(multimedia_msgs.msg, server_feedback_str) #my_import(server_module_str, server_feedback_str) # (multimedia_msgs.msg.{Action_name}Feedback)
+	_result = multimedia_msgs.msg.TestResult() # getattr(multimedia_msgs.msg, server_result_str) # (multimedia_msgs.msg.{Action_name}Result)
 
 	def __init__(self):
 		"""
