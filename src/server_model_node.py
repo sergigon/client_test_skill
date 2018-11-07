@@ -19,24 +19,57 @@ import importlib
 import rospy
 import actionlib
 
+# creates the ActionServer name pattern
 import multimedia_msgs.msg
+server_module_str = "multimedia_msgs.msg" # Libreria donde se encuentran los mensajes de los action
+server_action_name = "Test" #### Nombre del mensaje .action que se quiere enviar ####
+server_action_str = server_action_name + "Action"
+server_feedback_str = server_action_name + "Feedback"
+server_result_str = server_action_name + "Result"
+# Usa este formato:
+# my_import(server_module_str, server_feedback_str)
+# Es igual a poner: multimedia_msgs.msg.{Action_name}Feedback
 
+# Package name
 pkg_name = 'client_test_skill'
 roslib.load_manifest(pkg_name)
 
 # declare this only if the name is different of 'pkg_name'
-skill_name = "skill_server_model"
+skill_name = "server_model_skill"
 
+# ------------------------------------------- #
 # Result:
 # -1: Si ha habido algun error o cancelacion
 # 1: Si todo va bien
+# ------------------------------------------- #
+
+# ------------------------------------------- #
+# Feedback:
+# Devuelve el numero del contador
+# ------------------------------------------- #
+
+def my_import(module_name, class_name):
+	"""
+	Function to import a module from a string.
+
+	@param module_name: The name of the module.
+	@param class_name: The name of the class.
+	"""
+
+	# load the module, will raise ImportError if module cannot be loaded
+	m = importlib.import_module(module_name)
+
+	# get the class, will raise AttributeError if class cannot be found
+	c = getattr(m, class_name)
+
+	return c
 
 
 class ServerModelSkill(Skill):
 
 	# Feedback and result of this skill
-	_feedback = multimedia_msgs.msg.ClientFeedback()
-	_result = multimedia_msgs.msg.ClientResult()
+	_feedback = multimedia_msgs.msg.TestFeedback() #getattr(multimedia_msgs.msg, server_feedback_str) #my_import(server_module_str, server_feedback_str) # (multimedia_msgs.msg.{Action_name}Feedback)
+	_result = multimedia_msgs.msg.TestResult() #getattr(multimedia_msgs.msg, server_result_str) # (multimedia_msgs.msg.{Action_name}Result)
 
 	def __init__(self):
 		"""
@@ -64,7 +97,7 @@ class ServerModelSkill(Skill):
 
 		# Si el servidor actionlib no se ha inicializado:
 		if not self._as:
-			self._as = actionlib.SimpleActionServer(skill_name, multimedia_msgs.msg.ClientAction, execute_cb=self.execute_cb, auto_start=False)
+			self._as = actionlib.SimpleActionServer(skill_name, multimedia_msgs.msg.TestAction, execute_cb=self.execute_cb, auto_start=False)
 
 			# start the action server
 			self._as.start()
