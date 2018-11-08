@@ -12,7 +12,6 @@ __status__ = "Development"
 
 from skill.skill import Skill, ActionlibException, CONDITIONAL
 from std_msgs.msg import String, Empty
-from std_srvs.srv import Empty
 
 import roslib
 import importlib
@@ -117,14 +116,14 @@ class ServerModelSkill(Skill):
 		
 		print("shutdown_msg_srv() called")
 
-	def execute_cb(self, goal): # Se activa cuando le envias un goal a la skill
+	def execute_cb(self, goal): # Se activa cuando recibas un goal
 		"""
 		Spinner of the node.
 		"""
 		rospy.loginfo('[' + pkg_name + ']')
 	
-		# default values (SUCCESS)
-		self._result.result = -1
+		# default values (FAIL)
+		self._result.result = 1
 		self._feedback.feedback = 0
 
 		################### Loop de ejecucion ##########################

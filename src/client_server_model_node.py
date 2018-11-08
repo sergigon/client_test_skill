@@ -12,32 +12,141 @@ __status__ = "Development"
 
 from skill.skill import Skill, ActionlibException, CONDITIONAL
 from std_msgs.msg import String, Empty
-from std_srvs.srv import Empty
 
 import roslib
 import importlib
 import rospy
 import actionlib
-import multimedia_msgs.msg
 
+# creates the ActionServer name pattern
+import multimedia_msgs.msg
+server_module_str = "multimedia_msgs.msg" # Libreria donde se encuentran los mensajes de los action
+server_action_name = "Test" #### Nombre del mensaje .action que se quiere enviar ####
+server_action_str = server_action_name + "Action"
+server_feedback_str = server_action_name + "Feedback"
+server_result_str = server_action_name + "Result"
+# Usa este formato:
+# my_import(server_module_str, server_feedback_str)
+# Es igual a poner: multimedia_msgs.msg.{Action_name}Feedback
+
+# Package name
 pkg_name = 'client_test_skill'
 roslib.load_manifest(pkg_name)
 
 # declare this only if the name is different of 'pkg_name'
-skill_name = "client_server_test_skill"
+skill_name = "client_server_model_skill"
 
-server_name = 'test_skill'
-
+# ------------------------------------------- #
 # Result:
 # -1: Si ha habido algun error o cancelacion
-# 1: Si todo va bien
+# 0: Si todo va bien
+# 1: Fail
+# ------------------------------------------- #
+
+# ------------------------------------------- #
+# Feedback:
+# Devuelve el numero del contador
+# ------------------------------------------- #
+
+class Client():
+	
+	def __init__(self):
+		"""
+		Init method.
+		"""
+		
+		self.start_pub = rospy.Publisher(server_name+'/start', Empty, latch=True queue_size=1)
+		self.stop_pub = rospy.Publisher(server_name+'/stop', Empty, latch=True, queue_size=1)
+		
+		# class variables
+		print("Init")
+	
+	def skill_server_start(self, text=None):
+		# Mas info en: https://asimov.uc3m.es/mini/state_machine/blob/indigo-devel/src/state_akinator.py
+		# start the skill
+		
+		self.start_pub.publish(Empty())
+		print server_name+"start"
+		rospy.sleep(2)
+		 
+		result = self.client(text)
+		 
+		if result != None:
+			if result.result == -1:
+				aux_str = "ERROR"
+			if result.result == 0:
+				aux_str = "SUCCESS"
+			if result.result == 1:
+				aux_str = "FAIL"
+			print "Result: ", aux_str
+		
+		print "proceso acabado"
+			
+		# stop the skill
+		
+		self.stop_pub.publish(Empty())
+		print "Akinator_skill stop"
+		rospy.sleep(1)
+	
+	def client(self, text=None):  
+		print(skill_name + " creating client")
+		
+		# Creates the ActionClient
+		clt = actionlib.ActionClient(server_name, multimedia_msgs.msg.TestAction)
+		print "waiting for server " + server_name
+		clt.wait_for_server()
+		print "server ready"
+		
+		# Creates the goal
+		if text==None:
+			text = "hola te mando un goal desde el cliente " + skill_name
+		goal = multimedia_msgs.msg.TestGoal(text)
+		# Sends the goal to the action server
+		print(pkg_name + " sending goal")
+		clt_handle = clt.send_goal(goal)
+		
+		result = None
+		
+		if clt_handle != None:
+			rospy.sleep(10.0)
+			# wait for the server to finish performing the action
+			cancel = False # Variable to cancel the goal
+			once = False # Variable aux
+			
+			# Cojo el status del goal enviado, si esta en estado
+			# PREEMPTED, SUCCEEDED o ABORTED, salgo de la ejecucion del cliente
+			while clt_handle.get_goal_status() != 2 and clt_handle.get_goal_status()!=3 and clt_handle.get_goal_status() != 4:
+				if cancel and not once:
+					rospy.logwarn("Canceled!")
+					once = True
+					# cancel current goal
+					clt_handle.cancel()
+				
+				################ Ejecucion del cliente #################
+				# Introduce aqui lo que quieres que haga el cliente 
+				# mientras espera el resultado.
+				# Para cancelar el goal y salir del loop, iguala la
+				# variable "cancel a True".
+				
+				
+				# ....
+				
+				# ==================================================== #
+				print skill_name + " waiting for finish"
+				print("goal status: " + str(clt_handle.get_goal_status()))
+				rospy.sleep(1.0)
+
+			# sleep some time to wait the response
+			rospy.sleep(1.0)
+			result = clt_handle.get_result()
+		return result
 
 
-class ClientServerTestSkill(Skill):
+class ClientServerModelSkill(Skill):
 
 	# Feedback and result of this skill
-	_feedback = multimedia_msgs.msg.ClientFeedback()
-	_result = multimedia_msgs.msg.ClientResult()
+	_feedback = multimedia_msgs.msg.TestFeedback() # getattr(multimedia_msgs.msg, server_feedback_str) #my_import(server_module_str, server_feedback_str) # (multimedia_msgs.msg.{Action_name}Feedback)
+	_result = multimedia_msgs.msg.TestResult() # getattr(multimedia_msgs.msg, server_result_str) # (multimedia_msgs.msg.{Action_name}Result)
 
 	def __init__(self):
 		"""
@@ -50,12 +159,9 @@ class ClientServerTestSkill(Skill):
 		self._as = None # SimpleActionServer variable
 		self._goal = 0 # Goal a recibir
 		
-		self._sub_stop = None # Subscriber to external stop
-		
 		self._out = False # Variable de salida del loop en el execute_cb
 		self._counter = 0 
-		
-		#self._client = None
+
 
 	def create_msg_srv(self):
 		"""
@@ -63,19 +169,12 @@ class ClientServerTestSkill(Skill):
  		"""
  		print("create_msg_srv() called")
 		# publishers and subscribers
-		#self._sub_stop = rospy.Subscriber("chatter", String, callback)
 		
 		# servers and clients
 
-		# actions
-		# action_module = self.my_import(test_skill.msg.testAction, testAction)
-		#self._client = actionlib.SimpleActionClient(server_name, action_module)
-
-		#self._client.wait_for_server()
-
 		# Si el servidor actionlib no se ha inicializado:
 		if not self._as:
-			self._as = actionlib.SimpleActionServer(skill_name, multimedia_msgs.msg.ClientAction, execute_cb=self.execute_cb, auto_start=False)
+			self._as = actionlib.SimpleActionServer(skill_name, multimedia_msgs.msg.TestAction, execute_cb=self.execute_cb, auto_start=False)
 
 			# start the action server
 			self._as.start()
@@ -94,32 +193,14 @@ class ClientServerTestSkill(Skill):
 		
 		print("shutdown_msg_srv() called")
 
-	'''
-	def my_import(module_name, class_name):
-		"""
-		Function to import a module from a string.
-
-		@param module_name: The name of the module.
-		@param class_name: The name of the class.
-		"""
-
-		# load the module, will raise ImportError if module cannot be loaded
-		m = importlib.import_module(module_name)
-
-		# get the class, will raise AttributeError if class cannot be found
-		c = getattr(m, class_name)
-
-		return c
-	'''
-
-	def execute_cb(self, goal): # Se activa cuando le envias un goal a la skill
+	def execute_cb(self, goal): # Se activa cuando recibes un goal
 		"""
 		Spinner of the node.
 		"""
 		rospy.loginfo('[' + pkg_name + ']')
 	
-		# default values (SUCCESS)
-		self._result.result = False
+		# default values (FAIL)
+		self._result.result = 1
 		self._feedback.feedback = 0
 
 		################### Loop de ejecucion ##########################
@@ -145,11 +226,14 @@ class ClientServerTestSkill(Skill):
 							rospy.loginfo("goal:" + str(goal.command))
 						else:
 							rospy.loginfo("goal vacio")
+					
+					
+							
 					self._counter = self._counter + 1
 					print("self._counter: " + str(self._counter))
-					if self._counter >= 30:
-						self._result.result = 1
-						self._out = True
+					if self._counter >= 10:
+						self._result.result = 0
+						self._out = True # Salgo del loop
 					#==================================================#
 				
 				######### Si se ha hecho un preempted o cancel: ########
@@ -190,6 +274,7 @@ class ClientServerTestSkill(Skill):
 			self._as.set_preempted(self._result)
 		#==============================================================#
 
+
 		# Inicializacion variables
 		self._counter = 0
 		self._out = False
@@ -203,9 +288,8 @@ if __name__ == '__main__':
 		rospy.init_node(skill_name)
 
 		# create and spin the node
-		node = ClientServerTestSkill()
+		node = ClientServerModelSkill()
 		rospy.spin()
 
 	except rospy.ROSInterruptException:
 		pass
-

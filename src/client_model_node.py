@@ -34,7 +34,7 @@ class Client():
 		Init method.
 		"""
 		
-		self.start_pub = rospy.Publisher(server_name+'/start', Empty, queue_size=1)
+		self.start_pub = rospy.Publisher(server_name+'/start', Empty, latch=True queue_size=1)
 		self.stop_pub = rospy.Publisher(server_name+'/stop', Empty, latch=True, queue_size=1)
 		
 		# class variables
