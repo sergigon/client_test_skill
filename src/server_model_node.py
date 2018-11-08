@@ -40,7 +40,8 @@ skill_name = "server_model_skill"
 # ------------------------------------------- #
 # Result:
 # -1: Si ha habido algun error o cancelacion
-# 1: Si todo va bien
+# 0: Si todo va bien
+# 1: Fail
 # ------------------------------------------- #
 
 # ------------------------------------------- #
@@ -153,7 +154,7 @@ class ServerModelSkill(Skill):
 					self._counter = self._counter + 1
 					print("self._counter: " + str(self._counter))
 					if self._counter >= 10:
-						self._result.result = 1
+						self._result.result = 0
 						self._out = True # Salgo del loop
 					#==================================================#
 				

@@ -12,7 +12,7 @@ __status__ = "Development"
 
 from skill.skill import Skill, ActionlibException, CONDITIONAL
 from std_msgs.msg import String, Empty
-from std_srvs.srv import Empty
+
 
 import roslib
 import importlib
@@ -34,8 +34,38 @@ class Client():
 		Init method.
 		"""
 		
+		self.start_pub = rospy.Publisher(server_name+'/start', Empty, queue_size=1)
+		self.stop_pub = rospy.Publisher(server_name+'/stop', Empty, latch=True, queue_size=1)
+		
 		# class variables
 		print("Init")
+	
+	def skill_server_start(self, text=None):
+		# Mas info en: https://asimov.uc3m.es/mini/state_machine/blob/indigo-devel/src/state_akinator.py
+		# start the skill
+		
+		self.start_pub.publish(Empty())
+		print server_name+"start"
+		rospy.sleep(2)
+		 
+		result = self.client(text)
+		 
+		if result != None:
+			if result.result == -1:
+				aux_str = "ERROR"
+			if result.result == 0:
+				aux_str = "SUCCESS"
+			if result.result == 1:
+				aux_str = "FAIL"
+			print "Result: ", aux_str
+		
+		print "proceso acabado"
+			
+		# stop the skill
+		
+		self.stop_pub.publish(Empty())
+		print "Akinator_skill stop"
+		rospy.sleep(1)
 	
 	def client(self, text=None):  
 		print(skill_name + " creating client")
@@ -105,7 +135,7 @@ if __name__ == '__main__':
 				raise rospy.ROSInterruptException
 				
 			text = raw_input("Escribe el goal: ")
-			resultado = cliente.client(text)
+			resultado = cliente.skill_server_start(text)
 			print("Resultado: " + str(resultado))
 
 	except rospy.ROSInterruptException:
